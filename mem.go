@@ -1,13 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"log"
+	"os"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/patrickmn/go-cache"
 )
 
 type MemDB struct {
-	cache cache.Cache
+	cache  *cache.Cache
+	logger *log.Logger
 }
 
 var (
@@ -15,9 +20,28 @@ var (
 	ErrInvalidDataType = errors.New("not allowed except string")
 )
 
-func NewMemDB() *MemDB {
-	return &MemDB{
-		cache: *cache.New(cache.NoExpiration, cache.NoExpiration),
+func NewMemDB(logger *log.Logger) *MemDB {
+	b, err := os.ReadFile("./posts.json")
+	if err != nil {
+		return &MemDB{
+			cache:  cache.New(cache.NoExpiration, cache.NoExpiration),
+			logger: logger,
+		}
+	} else {
+		items := map[string]cache.Item{}
+		v := []*Post{}
+		_ = json.Unmarshal(b, &v)
+
+		for _, post := range v {
+			id := ulid.Make().String()
+			post.ID = id
+			items[id] = cache.Item{Object: post.String(), Expiration: 0}
+		}
+
+		return &MemDB{
+			cache:  cache.NewFrom(cache.NoExpiration, cache.NoExpiration, items),
+			logger: logger,
+		}
 	}
 }
 

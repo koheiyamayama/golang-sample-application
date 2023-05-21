@@ -30,7 +30,7 @@ func main() {
 	logName := "app-engine-go"
 	logger := client.Logger(logName).StandardLogger(logging.Info)
 
-	db := NewMemDB()
+	db := NewMemDB(logger)
 	h := NewHandlers(db)
 
 	http.HandleFunc("/posts", h.Posts)
