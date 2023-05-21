@@ -2,6 +2,6 @@ services:
   server:
     build: ./
     ports:
-      - 8888:8888
+      - 8888:8080
     env_file:
       - .env

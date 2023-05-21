@@ -12,7 +12,7 @@ import (
 func main() {
 	println("start app-engine-go")
 	srv := &http.Server{
-		Addr:         "0.0.0.0:8888",
+		Addr:         "0.0.0.0:8080",
 		ReadTimeout:  3 * time.Second,
 		WriteTimeout: 3 * time.Second,
 	}

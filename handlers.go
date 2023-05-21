@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/oklog/ulid/v2"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -49,6 +51,9 @@ func NewHandlers(db *MemDB) *Handlers {
 }
 
 func (h *Handlers) Posts(w http.ResponseWriter, r *http.Request) {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	log.Debug().Msg("sample zerolog")
+
 	switch r.Method {
 	case http.MethodGet:
 		w.Header().Add("Content-Type", "application/json")
