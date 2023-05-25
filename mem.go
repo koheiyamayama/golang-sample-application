@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"os"
 
 	"github.com/oklog/ulid/v2"
@@ -11,8 +10,7 @@ import (
 )
 
 type MemDB struct {
-	cache  *cache.Cache
-	logger *log.Logger
+	cache *cache.Cache
 }
 
 var (
@@ -20,12 +18,11 @@ var (
 	ErrInvalidDataType = errors.New("not allowed except string")
 )
 
-func NewMemDB(logger *log.Logger) *MemDB {
+func NewMemDB() *MemDB {
 	b, err := os.ReadFile("./posts.json")
 	if err != nil {
 		return &MemDB{
-			cache:  cache.New(cache.NoExpiration, cache.NoExpiration),
-			logger: logger,
+			cache: cache.New(cache.NoExpiration, cache.NoExpiration),
 		}
 	} else {
 		items := map[string]cache.Item{}
@@ -39,8 +36,7 @@ func NewMemDB(logger *log.Logger) *MemDB {
 		}
 
 		return &MemDB{
-			cache:  cache.NewFrom(cache.NoExpiration, cache.NoExpiration, items),
-			logger: logger,
+			cache: cache.NewFrom(cache.NoExpiration, cache.NoExpiration, items),
 		}
 	}
 }

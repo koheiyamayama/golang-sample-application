@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/oklog/ulid/v2"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -51,7 +50,6 @@ func NewHandlers(db *MemDB) *Handlers {
 }
 
 func (h *Handlers) Posts(w http.ResponseWriter, r *http.Request) {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Debug().Msg("sample zerolog")
 
 	switch r.Method {
