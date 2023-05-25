@@ -5,3 +5,13 @@ services:
       - 8888:8080
     env_file:
       - .env
+    volumes:
+      - ./:/src
+  rds:
+    image: mysql:latest
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=google-cloud-go
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
