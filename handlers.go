@@ -11,13 +11,8 @@ import (
 
 type (
 	Handlers struct {
-		db *MemDB
-	}
-
-	Post struct {
-		ID    string `json:"id"`
-		Title string `json:"title"`
-		Body  string `json:"body"`
+		db          *MemDB
+		mysqlClient *MySQLClient
 	}
 )
 
@@ -43,21 +38,21 @@ func FromStrToPost(str string) *Post {
 	return v
 }
 
-func NewHandlers(db *MemDB) *Handlers {
+func NewHandlers(db *MemDB, mysqlClient *MySQLClient) *Handlers {
 	return &Handlers{
-		db: db,
+		db:          db,
+		mysqlClient: mysqlClient,
 	}
 }
 
 func (h *Handlers) Posts(w http.ResponseWriter, r *http.Request) {
-	log.Debug().Msg("sample zerolog")
-
 	switch r.Method {
 	case http.MethodGet:
 		w.Header().Add("Content-Type", "application/json")
 		items := h.db.List()
 		var responses []*Post
 		for _, item := range items {
+			log.Debug().Msgf("item: %s", item)
 			responses = append(responses, FromStrToPost(item))
 		}
 		b, _ := json.Marshal(responses)
@@ -70,8 +65,8 @@ func (h *Handlers) Posts(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		v.ID = ulid.Make().String()
-		if err := h.db.Create(v.ID, v.String()); err != nil {
+		v.ID = ulid.Make()
+		if err := h.db.Create(v.ID.String(), v.String()); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

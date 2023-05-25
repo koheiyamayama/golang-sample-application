@@ -30,9 +30,9 @@ func NewMemDB() *MemDB {
 		_ = json.Unmarshal(b, &v)
 
 		for _, post := range v {
-			id := ulid.Make().String()
+			id := ulid.Make()
 			post.ID = id
-			items[id] = cache.Item{Object: post.String(), Expiration: 0}
+			items[id.String()] = cache.Item{Object: post.String(), Expiration: 0}
 		}
 
 		return &MemDB{
