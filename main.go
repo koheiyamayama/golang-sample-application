@@ -41,16 +41,6 @@ func main() {
 	}
 	mysqlClient := models.NewMySQLClient(dbx)
 
-	res := os.Getenv("INSERT_SEED_DATA")
-	if res == "" {
-		err = InsertSeedData(ctx, mysqlClient)
-		if err != nil {
-			log.Warn().Msg(err.Error())
-		} else {
-			os.Setenv("INSERT_SEED_DATA", "1")
-		}
-	}
-
 	db := NewMemDB()
 	h := NewHandlers(db, mysqlClient)
 
