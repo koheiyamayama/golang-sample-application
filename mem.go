@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/koheiyamayama/google-cloud-go/models"
 	"github.com/oklog/ulid/v2"
 	"github.com/patrickmn/go-cache"
 )
@@ -26,7 +27,7 @@ func NewMemDB() *MemDB {
 		}
 	} else {
 		items := map[string]cache.Item{}
-		v := []*Post{}
+		v := []*models.Post{}
 		_ = json.Unmarshal(b, &v)
 
 		for _, post := range v {

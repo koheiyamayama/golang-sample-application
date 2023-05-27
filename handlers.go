@@ -2,79 +2,78 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
+	"github.com/koheiyamayama/google-cloud-go/models"
 	"github.com/oklog/ulid/v2"
-	"github.com/rs/zerolog/log"
 )
 
 type (
 	Handlers struct {
 		db          *MemDB
-		mysqlClient *MySQLClient
+		mysqlClient *models.MySQLClient
+	}
+
+	InternalErrorResponse struct {
+		Msg string `json:"msg"`
 	}
 )
 
-func (p *Post) String() string {
-	b, err := json.Marshal(p)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
-}
-
-func (p *Post) Key() string {
-	return fmt.Sprintf("posts:%s", p.ID)
-}
-
-func FromStrToPost(str string) *Post {
-	v := &Post{}
-	if err := json.Unmarshal([]byte(str), v); err != nil {
-		return &Post{}
-	}
-
-	return v
-}
-
-func NewHandlers(db *MemDB, mysqlClient *MySQLClient) *Handlers {
+func NewHandlers(db *MemDB, mysqlClient *models.MySQLClient) *Handlers {
 	return &Handlers{
 		db:          db,
 		mysqlClient: mysqlClient,
 	}
 }
 
-func (h *Handlers) Posts(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		w.Header().Add("Content-Type", "application/json")
-		items := h.db.List()
-		var responses []*Post
-		for _, item := range items {
-			log.Debug().Msgf("item: %s", item)
-			responses = append(responses, FromStrToPost(item))
+func (h *Handlers) ListPosts(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	ctx := r.Context()
+	posts, err := h.mysqlClient.ListPosts(ctx, models.ToPtr(10))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		errRes := &InternalErrorResponse{
+			Msg: err.Error(),
 		}
-		b, _ := json.Marshal(responses)
+		b, _ := json.Marshal(errRes)
 		w.Write(b)
-	case http.MethodPost:
-		b := r.Body
-		defer r.Body.Close()
-		v := &Post{}
-		if err := json.NewDecoder(b).Decode(v); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		v.ID = ulid.Make()
-		if err := h.db.Create(v.ID.String(), v.String()); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		w.Header().Add("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(v.String()))
-	default:
-		w.WriteHeader(http.StatusNotFound)
+		return
 	}
+
+	type postsResponse struct {
+		Posts []*models.Post `json:"posts"`
+	}
+	postsRes := &postsResponse{
+		Posts: posts,
+	}
+	b, err := json.Marshal(postsRes)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		errRes := &InternalErrorResponse{
+			Msg: err.Error(),
+		}
+		b, _ := json.Marshal(errRes)
+		w.Write(b)
+		return
+	}
+	w.Write(b)
+}
+
+func (h *Handlers) CreatePosts(w http.ResponseWriter, r *http.Request) {
+	b := r.Body
+	defer r.Body.Close()
+	v := &models.Post{}
+	if err := json.NewDecoder(b).Decode(v); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	v.ID = ulid.Make()
+	if err := h.db.Create(v.ID.String(), v.String()); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(v.String()))
 }

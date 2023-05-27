@@ -1,4 +1,4 @@
-module github.com/koheiyamayama/app-engine-go
+module github.com/koheiyamayama/google-cloud-go
 
 go 1.20
 
@@ -8,6 +8,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/logging v1.7.0 // indirect
 	cloud.google.com/go/longrunning v0.3.0 // indirect
+	github.com/go-chi/chi/v5 v5.0.8 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

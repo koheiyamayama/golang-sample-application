@@ -6,17 +6,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/koheiyamayama/google-cloud-go/models"
 	"github.com/rs/zerolog/log"
 )
 
-func InsertSeedData(ctx context.Context, client *MySQLClient) error {
+func InsertSeedData(ctx context.Context, client *models.MySQLClient) error {
 	log.Debug().Msg("start insert seed data")
 	fp, err := os.ReadFile("./testdata/posts.json")
 	if err != nil {
 		return err
 	}
 
-	posts := []*Post{}
+	posts := []*models.Post{}
 	err = json.Unmarshal(fp, &posts)
 	if err != nil {
 		return err
@@ -27,7 +28,7 @@ func InsertSeedData(ctx context.Context, client *MySQLClient) error {
 		return err
 	}
 
-	users := []*User{}
+	users := []*models.User{}
 	err = json.Unmarshal(fu, &users)
 	if err != nil {
 		return err
@@ -35,7 +36,8 @@ func InsertSeedData(ctx context.Context, client *MySQLClient) error {
 
 	var uErrors []error
 	var pErrors []error
-	tx := client.dbx.MustBegin()
+	// TODO: Batch Insertなメソッドを定義する
+	tx := client.Dbx.MustBegin()
 	for _, user := range users {
 		user, uErr := client.InsertUser(ctx, user.Name)
 		if uErr != nil {

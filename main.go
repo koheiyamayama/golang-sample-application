@@ -8,8 +8,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"github.com/koheiyamayama/google-cloud-go/models"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -17,12 +19,6 @@ import (
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Debug().Msg("start google-cloud-go")
-
-	srv := &http.Server{
-		Addr:         "0.0.0.0:8080",
-		ReadTimeout:  3 * time.Second,
-		WriteTimeout: 3 * time.Second,
-	}
 
 	ctx := context.Background()
 	var dbx *sqlx.DB
@@ -43,7 +39,7 @@ func main() {
 
 		count += 1
 	}
-	mysqlClient := NewMySQLClient(dbx)
+	mysqlClient := models.NewMySQLClient(dbx)
 
 	res := os.Getenv("INSERT_SEED_DATA")
 	if res == "" {
@@ -58,7 +54,20 @@ func main() {
 	db := NewMemDB()
 	h := NewHandlers(db, mysqlClient)
 
-	http.HandleFunc("/posts", h.Posts)
+	r := chi.NewRouter()
+	r.Route("/v1", func(r chi.Router) {
+		r.Route("/posts", func(r chi.Router) {
+			r.Get("/", h.ListPosts)
+			r.Post("/", h.CreatePosts)
+		})
+	})
+
+	srv := &http.Server{
+		Addr:         "0.0.0.0:8080",
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
+		Handler:      r,
+	}
 
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal().Msgf("exit google-cloud-go: %s", err.Error())
