@@ -41,8 +41,7 @@ func main() {
 	}
 	mysqlClient := models.NewMySQLClient(dbx)
 
-	db := NewMemDB()
-	h := NewHandlers(db, mysqlClient)
+	h := NewHandlers(mysqlClient)
 
 	r := chi.NewRouter()
 	r.Route("/v1", func(r chi.Router) {

@@ -11,7 +11,6 @@ import (
 
 type (
 	Handlers struct {
-		db          *MemDB
 		mysqlClient *models.MySQLClient
 	}
 
@@ -20,9 +19,8 @@ type (
 	}
 )
 
-func NewHandlers(db *MemDB, mysqlClient *models.MySQLClient) *Handlers {
+func NewHandlers(mysqlClient *models.MySQLClient) *Handlers {
 	return &Handlers{
-		db:          db,
 		mysqlClient: mysqlClient,
 	}
 }
