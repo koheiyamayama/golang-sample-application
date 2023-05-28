@@ -50,6 +50,11 @@ func main() {
 			r.Get("/", h.ListPosts)
 			r.Post("/", h.CreatePosts)
 		})
+		r.Route("/users", func(r chi.Router) {
+			r.Route("/{userID}", func(r chi.Router) {
+				r.Get("/posts", h.ListPostsByUser)
+			})
+		})
 	})
 
 	srv := &http.Server{

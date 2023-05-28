@@ -24,6 +24,13 @@ type (
 		UserID ulid.ULID `json:"user_id"`
 	}
 
+	PostWithUser struct {
+		ID    ulid.ULID `json:"id"`
+		Title string    `json:"title"`
+		Body  string    `json:"body"`
+		User  User      `json:"user"`
+	}
+
 	MySQLClient struct {
 		Dbx *sqlx.DB
 	}
@@ -33,6 +40,16 @@ type (
 		Title  string `db:"title"`
 		Body   string `db:"body"`
 		UserID string `db:"user_id"`
+	}
+
+	MySQLPostWithUser struct {
+		ID    string `db:"id"`
+		Title string `db:"title"`
+		Body  string `db:"body"`
+		User  struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		} `json:"user"`
 	}
 )
 
@@ -101,14 +118,28 @@ func (mysql *MySQLClient) InsertPost(ctx context.Context, title string, body str
 	return &Post{ID: id, Title: title, Body: body, UserID: userID}, nil
 }
 
-func (mysql *MySQLClient) SelectPostsByUserID(ctx context.Context, userID ulid.ULID) ([]*Post, error) {
-	query := `
-		SELECT * FROM posts WHERE posts.user_id = ?; 
-	`
-	posts := []*Post{}
-	err := mysql.Dbx.SelectContext(ctx, &posts, query, userID.String())
+func (mysql *MySQLClient) SelectPostsByUserID(ctx context.Context, userID ulid.ULID, limit *int) ([]*Post, error) {
+	query := strings.Builder{}
+	query.WriteString(`
+	  select posts.id, posts.title, posts.body, posts.user_id 
+		from posts 
+		where posts.user_id = ?
+	`)
+	query.WriteString(" order by posts.id desc")
+	if limit == nil || *limit == 0 {
+		limit = ToPtr(10)
+	}
+	query.WriteString(fmt.Sprintf(" limit %d", *limit))
+
+	log.Debug().Msgf(query.String())
+	mPosts := []*MySQLPost{}
+	err := mysql.Dbx.SelectContext(ctx, &mPosts, query.String(), userID.String())
 	if err != nil {
 		return nil, fmt.Errorf("models.SelectPostsByUserID: failed to %s: %w", query, err)
+	}
+	posts := make([]*Post, len(mPosts))
+	for i, mpost := range mPosts {
+		posts[i] = mpost.ToPost()
 	}
 
 	return posts, nil
@@ -123,7 +154,6 @@ func (mysql *MySQLClient) ListPosts(ctx context.Context, limit *int) ([]*Post, e
 	query.WriteString(" order by posts.id desc")
 	query.WriteString(fmt.Sprintf(" limit %d", *limit))
 
-	log.Debug().Msgf("query: %s", query.String())
 	mPosts := []*MySQLPost{}
 	err := mysql.Dbx.SelectContext(ctx, &mPosts, query.String())
 	if err != nil {
