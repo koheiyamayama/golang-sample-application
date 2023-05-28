@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/koheiyamayama/google-cloud-go/models"
-	"github.com/oklog/ulid/v2"
 )
 
 type (
@@ -67,13 +66,19 @@ func (h *Handlers) CreatePosts(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	v.ID = ulid.Make()
-	if err := h.db.Create(v.ID.String(), v.String()); err != nil {
+	ctx := r.Context()
+	retVal, err := h.mysqlClient.InsertPost(ctx, v.Title, v.Body, v.UserID)
+	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		errRes := &InternalErrorResponse{
+			Msg: err.Error(),
+		}
+		b, _ := json.Marshal(errRes)
+		w.Write(b)
 		return
 	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(v.String()))
+	w.Write([]byte(retVal.String()))
 }
