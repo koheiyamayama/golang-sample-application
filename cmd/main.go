@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"os"
+	"math/rand"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jaswdr/faker"
 	"github.com/jmoiron/sqlx"
+	"github.com/koheiyamayama/google-cloud-go/config"
 	"github.com/koheiyamayama/google-cloud-go/models"
+	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 )
 
@@ -20,7 +21,7 @@ func main() {
 	count := 0
 	for {
 		time.Sleep(5 * time.Second)
-		dbx, err = sqlx.Open("mysql", "root:root@tcp(rds:3306)/google-cloud-go")
+		dbx, err = sqlx.Open("mysql", config.ConnectDBInfo())
 		if err != nil {
 			log.Warn().Msgf("retry because of %s", err.Error())
 		} else {
@@ -38,43 +39,44 @@ func main() {
 }
 
 func InsertSeedData(ctx context.Context, client *models.MySQLClient) error {
-	log.Debug().Msg("start insert seed data")
-	fp, err := os.ReadFile("./testdata/posts.json")
-	if err != nil {
-		return err
+	log.Info().Msg("start insert seed data")
+
+	faker := faker.New()
+	p := faker.Person()
+	users := make([]*models.User, 100)
+	for i, _ := range users {
+		users[i] = &models.User{
+			ID:   ulid.Make(),
+			Name: p.Name(),
+		}
 	}
 
-	posts := []*models.Post{}
-	err = json.Unmarshal(fp, &posts)
-	if err != nil {
-		return err
-	}
+	lorem := faker.Lorem()
 
-	fu, err := os.ReadFile("./testdata/posts.json")
-	if err != nil {
-		return err
-	}
-
-	users := []*models.User{}
-	err = json.Unmarshal(fu, &users)
-	if err != nil {
-		return err
-	}
-
-	var uErrors []error
-	var pErrors []error
 	// TODO: Batch Insertなメソッドを定義する
 	tx := client.Dbx.MustBegin()
 	for _, user := range users {
 		user, uErr := client.InsertUser(ctx, user.Name)
 		if uErr != nil {
-			uErrors = append(uErrors, uErr)
+			log.Error().Stack().Err(uErr).Send()
+			return uErr
+		}
+
+		posts := make([]*models.Post, 30)
+		for i, _ := range posts {
+			posts[i] = &models.Post{
+				ID:     ulid.Make(),
+				Title:  lorem.Text(rand.Intn(30)),
+				Body:   lorem.Text(rand.Intn(280)),
+				UserID: user.ID,
+			}
 		}
 
 		for _, post := range posts {
 			_, pErr := client.InsertPost(ctx, post.Title, post.Body, user.ID)
 			if pErr != nil {
-				pErrors = append(pErrors, pErr)
+				log.Error().Stack().Err(pErr).Send()
+				return pErr
 			}
 		}
 	}
@@ -82,13 +84,7 @@ func InsertSeedData(ctx context.Context, client *models.MySQLClient) error {
 		return err
 	}
 
-	if len(pErrors) != 0 {
-		return fmt.Errorf("failed to insert %d posts", len((pErrors)))
-	} else if len(uErrors) != 0 {
-		return fmt.Errorf("failed to insert %d posts", len((uErrors)))
-	}
-
-	log.Debug().Msg("end insert seed data")
+	log.Info().Msg("end insert seed data")
 
 	return nil
 }

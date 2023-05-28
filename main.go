@@ -2,17 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"github.com/koheiyamayama/google-cloud-go/config"
 	"github.com/koheiyamayama/google-cloud-go/models"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -28,7 +27,7 @@ func main() {
 	count := 0
 	for {
 		time.Sleep(5 * time.Second)
-		dbx, err = sqlx.Open("mysql", ConnectDBInfo())
+		dbx, err = sqlx.Open("mysql", config.ConnectDBInfo())
 		if err != nil {
 			log.Warn().Msgf("retry because of %s", err.Error())
 		} else {
@@ -84,25 +83,4 @@ func main() {
 		log.Fatal().Msgf("Failed to gracefully shutdown:", err)
 	}
 	log.Info().Msg("Server shutdown")
-}
-
-func ConnectDBInfo() string {
-	type opt struct {
-		Key   string
-		Value string
-	}
-	type opts []*opt
-
-	options := opts{
-		{Key: "parseTime", Value: "true"},
-	}
-	info := strings.Builder{}
-	base := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", GetDBUserName(), GetDBPassword(), GetDBHostName(), GetDBPort(), GetDatabaseName())
-	info.WriteString(base)
-
-	for _, option := range options {
-		info.WriteString(fmt.Sprintf("?%s=%s", option.Key, option.Value))
-	}
-
-	return info.String()
 }

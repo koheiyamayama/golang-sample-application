@@ -1,9 +1,34 @@
-package main
+package config
 
-import "os"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 func GetGCPProjectID() string {
 	return os.Getenv("GCP_PROJECT_ID")
+}
+
+func ConnectDBInfo() string {
+	type opt struct {
+		Key   string
+		Value string
+	}
+	type opts []*opt
+
+	options := opts{
+		{Key: "parseTime", Value: "true"},
+	}
+	info := strings.Builder{}
+	base := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", GetDBUserName(), GetDBPassword(), GetDBHostName(), GetDBPort(), GetDatabaseName())
+	info.WriteString(base)
+
+	for _, option := range options {
+		info.WriteString(fmt.Sprintf("?%s=%s", option.Key, option.Value))
+	}
+
+	return info.String()
 }
 
 func GetDBUserName() string {

@@ -16,6 +16,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/jackskj/carta v0.2.0 // indirect
+	github.com/jaswdr/faker v1.17.0 // indirect
 	github.com/jmoiron/sqlx v1.3.5 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.18 // indirect
