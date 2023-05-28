@@ -46,6 +46,7 @@ func main() {
 	h := NewHandlers(mysqlClient)
 
 	r := chi.NewRouter()
+	r.Use(Logging)
 	r.Route("/v1", func(r chi.Router) {
 		r.Route("/posts", func(r chi.Router) {
 			r.Get("/", h.ListPosts)
@@ -65,10 +66,12 @@ func main() {
 		Handler:      r,
 	}
 
-	if err := srv.ListenAndServe(); err != nil {
-		log.Fatal().Msgf("exit google-cloud-go: %s", err.Error())
-		os.Exit(1)
-	}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil {
+			log.Fatal().Msgf("exit google-cloud-go: %s", err.Error())
+			os.Exit(1)
+		}
+	}()
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, os.Interrupt)
@@ -102,49 +105,4 @@ func ConnectDBInfo() string {
 	}
 
 	return info.String()
-}
-
-func GetDBUserName() string {
-	defaultName := "root"
-	if userName := os.Getenv("DATABASE_USER_NAME"); userName != "" {
-		return userName
-	} else {
-		return defaultName
-	}
-}
-
-func GetDBPassword() string {
-	defaultPassword := "root"
-	if password := os.Getenv("DATABASE_PASSWORD"); password != "" {
-		return password
-	} else {
-		return defaultPassword
-	}
-}
-
-func GetDBHostName() string {
-	defaultHostname := "rds"
-	if hostname := os.Getenv("DATABASE_HOSTNAME"); hostname != "" {
-		return hostname
-	} else {
-		return defaultHostname
-	}
-}
-
-func GetDBPort() string {
-	defaultPort := "3306"
-	if port := os.Getenv("DATABASE_PORT"); port != "" {
-		return port
-	} else {
-		return defaultPort
-	}
-}
-
-func GetDatabaseName() string {
-	defaultDatabaseName := "google-cloud-go"
-	if databaseName := os.Getenv("DATABASE_NAME"); databaseName != "" {
-		return databaseName
-	} else {
-		return defaultDatabaseName
-	}
 }
