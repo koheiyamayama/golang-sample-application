@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jackskj/carta"
 	"github.com/jmoiron/sqlx"
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
@@ -43,13 +44,13 @@ type (
 	}
 
 	MySQLPostWithUser struct {
-		ID    string `db:"id"`
-		Title string `db:"title"`
-		Body  string `db:"body"`
+		ID    string `db:"post_id"`
+		Title string `db:"post_title"`
+		Body  string `db:"post_body"`
 		User  struct {
-			ID   string `json:"id"`
-			Name string `json:"name"`
-		} `json:"user"`
+			ID   string `db:"user_id"`
+			Name string `db:"user_name"`
+		}
 	}
 )
 
@@ -88,8 +89,20 @@ func (p *Post) Key() string {
 	return fmt.Sprintf("posts:%s", p.ID)
 }
 
-func (mp *MySQLPost) ToPost() *Post {
+func (mp *MySQLPost) ToModel() *Post {
 	return NewPost(ulid.MustParse(mp.ID), mp.Title, mp.Body, ulid.MustParse(mp.UserID))
+}
+
+func (mp *MySQLPostWithUser) ToModel() *PostWithUser {
+	return &PostWithUser{
+		ID:    ulid.MustParse(mp.ID),
+		Title: mp.Title,
+		Body:  mp.Body,
+		User: User{
+			ID:   ulid.MustParse(mp.User.ID),
+			Name: mp.User.Name,
+		},
+	}
 }
 
 func (mysql *MySQLClient) InsertUser(ctx context.Context, name string) (*User, error) {
@@ -139,31 +152,38 @@ func (mysql *MySQLClient) SelectPostsByUserID(ctx context.Context, userID ulid.U
 	}
 	posts := make([]*Post, len(mPosts))
 	for i, mpost := range mPosts {
-		posts[i] = mpost.ToPost()
+		posts[i] = mpost.ToModel()
 	}
 
 	return posts, nil
 }
 
-func (mysql *MySQLClient) ListPosts(ctx context.Context, limit *int) ([]*Post, error) {
+func (mysql *MySQLClient) ListPosts(ctx context.Context, limit *int) ([]*PostWithUser, error) {
 	query := strings.Builder{}
 	if limit != nil || *limit == 0 {
 		limit = ToPtr(10)
 	}
-	query.WriteString("select * from posts")
-	query.WriteString(" order by posts.id desc")
+	query.WriteString(`
+	  select P.id as post_id, P.title as post_title, P.body as post_body, U.id as user_id, U.name as user_name
+		from posts as P
+		join users as U
+		on U.id = P.user_id
+	`)
+	query.WriteString(" order by P.id desc")
 	query.WriteString(fmt.Sprintf(" limit %d", *limit))
 
-	mPosts := []*MySQLPost{}
-	err := mysql.Dbx.SelectContext(ctx, &mPosts, query.String())
+	mPosts := []*MySQLPostWithUser{}
+	rows, err := mysql.Dbx.QueryContext(ctx, query.String())
 	if err != nil {
 		return nil, fmt.Errorf("models.ListPosts: failed to %s: %w", query, err)
 	}
 
-	posts := make([]*Post, len(mPosts))
-	for i, mpost := range mPosts {
-		posts[i] = mpost.ToPost()
+	carta.Map(rows, &mPosts)
+	posts := make([]*PostWithUser, len(mPosts))
+	for i, p := range mPosts {
+		posts[i] = p.ToModel()
 	}
+
 	return posts, nil
 }
 

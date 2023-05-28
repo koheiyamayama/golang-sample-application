@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -26,7 +28,7 @@ func main() {
 	count := 0
 	for {
 		time.Sleep(5 * time.Second)
-		dbx, err = sqlx.Open("mysql", "root:root@tcp(rds:3306)/google-cloud-go")
+		dbx, err = sqlx.Open("mysql", ConnectDBInfo())
 		if err != nil {
 			log.Warn().Msgf("retry because of %s", err.Error())
 		} else {
@@ -79,4 +81,70 @@ func main() {
 		log.Fatal().Msgf("Failed to gracefully shutdown:", err)
 	}
 	log.Info().Msg("Server shutdown")
+}
+
+func ConnectDBInfo() string {
+	type opt struct {
+		Key   string
+		Value string
+	}
+	type opts []*opt
+
+	options := opts{
+		{Key: "parseTime", Value: "true"},
+	}
+	info := strings.Builder{}
+	base := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", GetDBUserName(), GetDBPassword(), GetDBHostName(), GetDBPort(), GetDatabaseName())
+	info.WriteString(base)
+
+	for _, option := range options {
+		info.WriteString(fmt.Sprintf("?%s=%s", option.Key, option.Value))
+	}
+
+	return info.String()
+}
+
+func GetDBUserName() string {
+	defaultName := "root"
+	if userName := os.Getenv("DATABASE_USER_NAME"); userName != "" {
+		return userName
+	} else {
+		return defaultName
+	}
+}
+
+func GetDBPassword() string {
+	defaultPassword := "root"
+	if password := os.Getenv("DATABASE_PASSWORD"); password != "" {
+		return password
+	} else {
+		return defaultPassword
+	}
+}
+
+func GetDBHostName() string {
+	defaultHostname := "rds"
+	if hostname := os.Getenv("DATABASE_HOSTNAME"); hostname != "" {
+		return hostname
+	} else {
+		return defaultHostname
+	}
+}
+
+func GetDBPort() string {
+	defaultPort := "3306"
+	if port := os.Getenv("DATABASE_PORT"); port != "" {
+		return port
+	} else {
+		return defaultPort
+	}
+}
+
+func GetDatabaseName() string {
+	defaultDatabaseName := "google-cloud-go"
+	if databaseName := os.Getenv("DATABASE_NAME"); databaseName != "" {
+		return databaseName
+	} else {
+		return defaultDatabaseName
+	}
 }

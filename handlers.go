@@ -40,7 +40,7 @@ func (h *Handlers) ListPosts(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type postsResponse struct {
-		Posts []*models.Post `json:"posts"`
+		Posts []*models.PostWithUser `json:"posts"`
 	}
 	postsRes := &postsResponse{
 		Posts: posts,
