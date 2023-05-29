@@ -21,7 +21,12 @@ func ConnectDBInfo() string {
 		{Key: "parseTime", Value: "true"},
 	}
 	info := strings.Builder{}
-	base := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", GetDBUserName(), GetDBPassword(), GetDBHostName(), GetDBPort(), GetDatabaseName())
+	var base string
+	if GetDBConnMethod() == "rds" {
+		base = fmt.Sprintf("%s:%s@%s(%s:%s)/%s", GetDBUserName(), GetDBPassword(), GetDBConnMethod(), GetDBHostName(), GetDBPort(), GetDatabaseName())
+	} else {
+		base = fmt.Sprintf("%s:%s@%s(%s)/%s", GetDBUserName(), GetDBPassword(), GetDBConnMethod(), GetDBHostName(), GetDatabaseName())
+	}
 	info.WriteString(base)
 
 	for _, option := range options {
@@ -46,6 +51,15 @@ func GetDBPassword() string {
 		return password
 	} else {
 		return defaultPassword
+	}
+}
+
+func GetDBConnMethod() string {
+	defaultConnMethod := "tcp"
+	if ConnMethod := os.Getenv("DATABASE_CONN_METHOD"); ConnMethod != "" {
+		return ConnMethod
+	} else {
+		return defaultConnMethod
 	}
 }
 
