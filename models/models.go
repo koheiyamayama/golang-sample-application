@@ -175,7 +175,7 @@ func (mysql *MySQLClient) ListPosts(ctx context.Context, limit *int) ([]*PostWit
 	mPosts := []*MySQLPostWithUser{}
 	rows, err := mysql.Dbx.QueryContext(ctx, query.String())
 	if err != nil {
-		return nil, fmt.Errorf("models.ListPosts: failed to %s: %w", query, err)
+		return nil, fmt.Errorf("models.ListPosts: failed to %s: %w", query.String(), err)
 	}
 
 	carta.Map(rows, &mPosts)

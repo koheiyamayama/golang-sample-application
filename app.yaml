@@ -2,3 +2,4 @@ runtime: go120
 instance_class: F1
 includes:
   - ./production.secret.yaml
+service_account: be-yamaguchi-kohei@appspot.gserviceaccount.com
