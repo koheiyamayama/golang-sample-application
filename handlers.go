@@ -42,6 +42,11 @@ func (h *Handlers) ListPosts(w http.ResponseWriter, r *http.Request) {
 	type postsResponse struct {
 		Posts []*models.PostWithUser `json:"posts"`
 	}
+
+	for _, post := range posts {
+		post.User.ProfileURL = post.User.ProfileImageURL()
+	}
+
 	postsRes := &postsResponse{
 		Posts: posts,
 	}

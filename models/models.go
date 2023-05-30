@@ -14,8 +14,9 @@ import (
 
 type (
 	User struct {
-		ID   ulid.ULID `json:"id"`
-		Name string    `json:"name"`
+		ID         ulid.ULID `json:"id"`
+		Name       string    `json:"name"`
+		ProfileURL string    `json:"profile_url"`
 	}
 
 	Post struct {
@@ -48,8 +49,9 @@ type (
 		Title string `db:"post_title"`
 		Body  string `db:"post_body"`
 		User  struct {
-			ID   string `db:"user_id"`
-			Name string `db:"user_name"`
+			ID         string `db:"user_id"`
+			Name       string `db:"user_name"`
+			ProfileURL string `db:"user_profile_url"`
 		}
 	}
 )
@@ -59,6 +61,13 @@ func NewUser(id ulid.ULID, name string) *User {
 		ID:   id,
 		Name: name,
 	}
+}
+
+func (u *User) ProfileImageURL() string {
+	url := strings.Builder{}
+	url.WriteString("https://storage.cloud.google.com/be-yamaguchi-kohei.appspot.com/profile_images/")
+	url.WriteString(u.ProfileURL)
+	return url.String()
 }
 
 func NewPost(id ulid.ULID, title string, body string, userID ulid.ULID) *Post {
@@ -99,18 +108,19 @@ func (mp *MySQLPostWithUser) ToModel() *PostWithUser {
 		Title: mp.Title,
 		Body:  mp.Body,
 		User: User{
-			ID:   ulid.MustParse(mp.User.ID),
-			Name: mp.User.Name,
+			ID:         ulid.MustParse(mp.User.ID),
+			Name:       mp.User.Name,
+			ProfileURL: mp.User.ProfileURL,
 		},
 	}
 }
 
-func (mysql *MySQLClient) InsertUser(ctx context.Context, name string) (*User, error) {
+func (mysql *MySQLClient) InsertUser(ctx context.Context, name string, profileURL string) (*User, error) {
 	query := `
-		INSERT INTO users (id, name) VALUES (?, ?); 
+		INSERT INTO users (id, name, profile_url) VALUES (?, ?, ?);
 	`
 	id := ulid.Make()
-	_, err := mysql.Dbx.ExecContext(ctx, query, id.String(), name)
+	_, err := mysql.Dbx.ExecContext(ctx, query, id.String(), name, profileURL)
 	if err != nil {
 		return nil, fmt.Errorf("models.InsertUser: failed to %s: %w", query, err)
 	}
@@ -164,7 +174,7 @@ func (mysql *MySQLClient) ListPosts(ctx context.Context, limit *int) ([]*PostWit
 		limit = ToPtr(10)
 	}
 	query.WriteString(`
-	  select P.id as post_id, P.title as post_title, P.body as post_body, U.id as user_id, U.name as user_name
+	  select P.id as post_id, P.title as post_title, P.body as post_body, U.id as user_id, U.name as user_name, U.profile_url as user_profile_url
 		from posts as P
 		join users as U
 		on U.id = P.user_id
