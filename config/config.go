@@ -86,7 +86,7 @@ func GetDatabaseName() string {
 }
 
 func AppServerAddr() string {
-	return fmt.Sprintf("0.0.0.0:%s", GetPort())
+	return fmt.Sprintf(":%s", GetPort())
 }
 
 func GetPort() string {
