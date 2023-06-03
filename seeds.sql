@@ -1,6 +1,3 @@
-DROP TABLE `posts`;
-DROP TABLE `users`;
-
 CREATE TABLE
     `users` (
         id CHAR(36) PRIMARY KEY,

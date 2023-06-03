@@ -25,6 +25,7 @@ func main() {
 	var dbx *sqlx.DB
 	var err error
 	count := 0
+	log.Debug().Msg("connect mysql...")
 	for {
 		time.Sleep(5 * time.Second)
 		dbx, err = sqlx.Open("mysql", config.ConnectDBInfo())
@@ -65,6 +66,7 @@ func main() {
 		Handler:      r,
 	}
 
+	log.Debug().Msg("start app server")
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Fatal().Msgf("exit google-cloud-go: %s", err.Error())
