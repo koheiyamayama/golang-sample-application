@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/koheiyamayama/google-cloud-go/models"
 	"github.com/oklog/ulid/v2"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -26,6 +27,7 @@ func NewHandlers(mysqlClient *models.MySQLClient) *Handlers {
 }
 
 func (h *Handlers) ListPosts(w http.ResponseWriter, r *http.Request) {
+	log.Debug().Msgf("list posts")
 	w.Header().Add("Content-Type", "application/json")
 	ctx := r.Context()
 	posts, err := h.mysqlClient.ListPosts(ctx, models.ToPtr(10))
@@ -38,7 +40,7 @@ func (h *Handlers) ListPosts(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 		return
 	}
-
+	log.Debug().Msgf("found posts")
 	type postsResponse struct {
 		Posts []*models.PostWithUser `json:"posts"`
 	}
@@ -60,6 +62,7 @@ func (h *Handlers) ListPosts(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 		return
 	}
+	log.Debug().Msgf("response posts")
 	w.Write(b)
 }
 
