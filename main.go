@@ -28,9 +28,10 @@ func main() {
 	log.Debug().Msg("connect mysql...")
 	for {
 		time.Sleep(5 * time.Second)
+		log.Debug().Msg(config.ConnectDBInfo())
 		dbx, err = sqlx.Open("mysql", config.ConnectDBInfo())
 		if err != nil {
-			log.Warn().Msgf("retry because of %s", err.Error())
+			log.Debug().Msgf("retry because of %s", err.Error())
 		} else {
 			break
 		}
