@@ -185,10 +185,17 @@ func (mysql *MySQLClient) ListPosts(ctx context.Context, limit *int) ([]*PostWit
 	mPosts := []*MySQLPostWithUser{}
 	rows, err := mysql.Dbx.QueryContext(ctx, query.String())
 	if err != nil {
-		return nil, fmt.Errorf("models.ListPosts: failed to %s: %w", query.String(), err)
+		err = fmt.Errorf("models.ListPosts: failed to %s: %w", query.String(), err)
+		log.Debug().Msgf(err.Error())
+		return nil, fmt.Errorf(err.Error())
 	}
 
-	carta.Map(rows, &mPosts)
+	err = carta.Map(rows, &mPosts)
+	if err != nil {
+		err = fmt.Errorf("models.ListPosts: failed to carta.Map: %w", err)
+		log.Debug().Msgf(err.Error())
+		return nil, fmt.Errorf(err.Error())
+	}
 	posts := make([]*PostWithUser, len(mPosts))
 	for i, p := range mPosts {
 		posts[i] = p.ToModel()
