@@ -66,7 +66,7 @@ func main() {
 		Handler:      r,
 	}
 
-	log.Debug().Msg("start app server")
+	log.Debug().Msgf("start app server %s", config.AppServerAddr())
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
 			log.Fatal().Msgf("exit google-cloud-go: %s", err.Error())
