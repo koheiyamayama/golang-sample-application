@@ -158,7 +158,7 @@ func (mysql *MySQLClient) SelectPostsByUserID(ctx context.Context, userID ulid.U
 	mPosts := []*MySQLPost{}
 	err := mysql.Dbx.SelectContext(ctx, &mPosts, query.String(), userID.String())
 	if err != nil {
-		return nil, fmt.Errorf("models.SelectPostsByUserID: failed to %s: %w", query, err)
+		return nil, fmt.Errorf("models.SelectPostsByUserID: failed to %s: %w", query.String(), err)
 	}
 	posts := make([]*Post, len(mPosts))
 	for i, mpost := range mPosts {

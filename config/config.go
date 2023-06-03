@@ -84,3 +84,16 @@ func GetDatabaseName() string {
 		return defaultDatabaseName
 	}
 }
+
+func AppServerAddr() string {
+	return fmt.Sprintf("0.0.0.0:%s", GetPort())
+}
+
+func GetPort() string {
+	defaultPort := "8080"
+	if port := os.Getenv("PORT"); port != "" {
+		return port
+	} else {
+		return defaultPort
+	}
+}

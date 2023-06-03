@@ -59,7 +59,7 @@ func main() {
 	})
 
 	srv := &http.Server{
-		Addr:         "0.0.0.0:8080",
+		Addr:         config.AppServerAddr(),
 		ReadTimeout:  3 * time.Second,
 		WriteTimeout: 3 * time.Second,
 		Handler:      r,
