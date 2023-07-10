@@ -11,15 +11,15 @@ import (
 	"github.com/go-chi/chi/v5"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/koheiyamayama/google-cloud-go/config"
-	"github.com/koheiyamayama/google-cloud-go/models"
+	"github.com/koheiyamayama/golang-sample-application/config"
+	"github.com/koheiyamayama/golang-sample-application/models"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Debug().Msg("start google-cloud-go")
+	log.Debug().Msg("start golang-sample-application")
 
 	ctx := context.Background()
 	var dbx *sqlx.DB
@@ -67,7 +67,7 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Fatal().Msgf("exit google-cloud-go: %s", err.Error())
+			log.Fatal().Msgf("exit golang-sample-application: %s", err.Error())
 			os.Exit(1)
 		}
 	}()
@@ -80,7 +80,7 @@ func main() {
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		// Error from closing listeners, or context timeout:
-		log.Fatal().Msgf("Failed to gracefully shutdown:", err)
+		log.Fatal().Msgf("Failed to gracefully shutdown: %s", err.Error())
 	}
 	log.Info().Msg("Server shutdown")
 }

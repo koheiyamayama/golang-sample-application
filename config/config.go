@@ -82,7 +82,7 @@ func GetDBPort() string {
 }
 
 func GetDatabaseName() string {
-	defaultDatabaseName := "google-cloud-go"
+	defaultDatabaseName := "golang-sample-application"
 	if databaseName := os.Getenv("DATABASE_NAME"); databaseName != "" {
 		return databaseName
 	} else {

@@ -4,8 +4,8 @@ tmp_dir = "tmp"
 
 [build]
   args_bin = []
-  bin = "/go/bin/google-cloud-go"
-  cmd = "go build -o /go/bin/google-cloud-go /src"
+  bin = "/go/bin/golang-sample-application"
+  cmd = "go build -o /go/bin/golang-sample-application /src"
   delay = 3000
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   exclude_file = []
