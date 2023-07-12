@@ -22,7 +22,7 @@ func ConnectDBInfo() string {
 	}
 	info := strings.Builder{}
 	var base string
-	if GetDBConnMethod() == "rds" {
+	if GetDBConnMethod() == "rdb" {
 		base = fmt.Sprintf("%s:%s@%s(%s:%s)/%s", GetDBUserName(), GetDBPassword(), GetDBConnMethod(), GetDBHostName(), GetDBPort(), GetDatabaseName())
 	} else {
 		base = fmt.Sprintf("%s:%s@%s(%s)/%s", GetDBUserName(), GetDBPassword(), GetDBConnMethod(), GetDBHostName(), GetDatabaseName())
@@ -82,7 +82,7 @@ func GetDBPort() string {
 }
 
 func GetDatabaseName() string {
-	defaultDatabaseName := "golang-sample-application"
+	defaultDatabaseName := "ks-laboratory-backend"
 	if databaseName := os.Getenv("DATABASE_NAME"); databaseName != "" {
 		return databaseName
 	} else {

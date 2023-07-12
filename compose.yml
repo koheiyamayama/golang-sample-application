@@ -7,11 +7,11 @@ services:
       - .env
     volumes:
       - ./:/src
-  rds:
+  rdb:
     image: mysql:latest
     ports:
       - 3306:3306
     environment:
       - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=golang-sample-application
+      - MYSQL_DATABASE=ks-laboratory-backend
     command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci

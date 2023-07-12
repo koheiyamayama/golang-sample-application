@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/koheiyamayama/golang-sample-application/models"
+	"github.com/koheiyamayama/ks-laboratory-backend/models"
 	"github.com/oklog/ulid/v2"
 )
 

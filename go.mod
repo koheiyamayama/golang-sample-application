@@ -1,4 +1,4 @@
-module github.com/koheiyamayama/golang-sample-application
+module github.com/koheiyamayama/ks-laboratory-backend
 
 go 1.20
 
@@ -12,6 +12,7 @@ require (
 )
 
 require (
+	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

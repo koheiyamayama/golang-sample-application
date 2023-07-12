@@ -8,38 +8,28 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/avast/retry-go"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
-	"github.com/koheiyamayama/golang-sample-application/config"
-	"github.com/koheiyamayama/golang-sample-application/models"
+	"github.com/koheiyamayama/ks-laboratory-backend/config"
+	"github.com/koheiyamayama/ks-laboratory-backend/models"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	log.Debug().Msg("start golang-sample-application")
+	log.Debug().Msg("start ks-laboratory-backend")
 
 	ctx := context.Background()
 	var dbx *sqlx.DB
-	var err error
-	count := 0
-	for {
-		time.Sleep(5 * time.Second)
+	retry.Do(func() error {
+		var err error
 		dbx, err = sqlx.Open("mysql", config.ConnectDBInfo())
-		if err != nil {
-			log.Warn().Msgf("retry because of %s", err.Error())
-		} else {
-			break
-		}
+		return err
+	}, retry.Attempts(5), retry.Delay(3*time.Second))
 
-		if count >= 6 {
-			log.Fatal().Msg("failed to open mysql")
-		}
-
-		count += 1
-	}
 	mysqlClient := models.NewMySQLClient(dbx)
 
 	h := NewHandlers(mysqlClient)
@@ -59,7 +49,7 @@ func main() {
 	})
 
 	srv := &http.Server{
-		Addr:         "0.0.0.0:8080",
+		Addr:         ":8080",
 		ReadTimeout:  3 * time.Second,
 		WriteTimeout: 3 * time.Second,
 		Handler:      r,
@@ -67,7 +57,7 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Fatal().Msgf("exit golang-sample-application: %s", err.Error())
+			log.Fatal().Msgf("exit ks-laboratory-backend: %s", err.Error())
 			os.Exit(1)
 		}
 	}()
