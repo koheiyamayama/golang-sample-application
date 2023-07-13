@@ -13,6 +13,11 @@ import (
 )
 
 type (
+	Health struct {
+		MysqlConnected   bool `json:"mysql_connected"`
+		ApiServerStarted bool `json:"api_server_started"`
+	}
+
 	User struct {
 		ID   ulid.ULID `json:"id"`
 		Name string    `json:"name"`

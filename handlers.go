@@ -25,6 +25,21 @@ func NewHandlers(mysqlClient *models.MySQLClient) *Handlers {
 	}
 }
 
+func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "application/json")
+	ctx := r.Context()
+	mysqlPingErr := h.mysqlClient.Dbx.PingContext(ctx)
+	health := &models.Health{
+		MysqlConnected: func() bool {
+			return mysqlPingErr == nil
+		}(),
+		ApiServerStarted: true,
+	}
+
+	b, _ := json.Marshal(health)
+	w.Write(b)
+}
+
 func (h *Handlers) ListPosts(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	ctx := r.Context()

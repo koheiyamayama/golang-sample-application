@@ -37,6 +37,9 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(Logging)
 	r.Route("/v1", func(r chi.Router) {
+		r.Route("/healthd", func(r chi.Router) {
+			r.Get("/", h.Health)
+		})
 		r.Route("/posts", func(r chi.Router) {
 			r.Get("/", h.ListPosts)
 			r.Post("/", h.CreatePosts)
