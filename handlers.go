@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/koheiyamayama/ks-laboratory-backend/models"
 	"github.com/oklog/ulid/v2"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -31,7 +32,12 @@ func (h *Handlers) Health(w http.ResponseWriter, r *http.Request) {
 	mysqlPingErr := h.mysqlClient.Dbx.PingContext(ctx)
 	health := &models.Health{
 		MysqlConnected: func() bool {
-			return mysqlPingErr == nil
+			if mysqlPingErr == nil {
+				return true
+			} else {
+				log.Error().Err(mysqlPingErr).Send()
+				return false
+			}
 		}(),
 		ApiServerStarted: true,
 	}
