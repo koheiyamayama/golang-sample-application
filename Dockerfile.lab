@@ -2,7 +2,7 @@ FROM golang:1.20.4-bullseye as build
 RUN mkdir /src
 WORKDIR /src
 COPY . /src
-RUN go build -o /go/bin/ks-laboratory-backend /src
+RUN GOOS=linux GOARCH=amd64 go build -o /go/bin/ks-laboratory-backend /src
 
 FROM debian:bullseye
 COPY --from=build /go/bin/ks-laboratory-backend /go/bin/ks-laboratory-backend
