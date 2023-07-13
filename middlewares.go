@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -22,7 +21,12 @@ func Logging(h http.Handler) http.Handler {
 			w.Write(b)
 		}
 
-		log.Info().Dict("request_body", zerolog.Dict().Bytes("request_body", body)).Send()
+		log.Info().
+			Bytes("request_body", body).
+			Str("path", r.URL.Path).
+			Str("method", r.Method).
+			Send()
+
 		r.Body = io.NopCloser(bytes.NewBuffer(body))
 
 		h.ServeHTTP(w, r)

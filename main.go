@@ -27,6 +27,7 @@ func main() {
 	retry.Do(func() error {
 		var err error
 		dbx, err = sqlx.Open("mysql", config.ConnectDBInfo())
+		log.Err(err).Msg("failed to connect mysql")
 		return err
 	}, retry.Attempts(5), retry.Delay(3*time.Second))
 
