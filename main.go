@@ -27,7 +27,7 @@ func main() {
 	retry.Do(func() error {
 		var err error
 		dbx, err = sqlx.Open("mysql", config.ConnectDBInfo())
-		log.Err(err).Msg("failed to connect mysql")
+		log.Err(err).Msgf("failed to connect mysql: %s", config.ConnectDBInfo())
 		return err
 	}, retry.Attempts(5), retry.Delay(3*time.Second))
 
@@ -60,6 +60,7 @@ func main() {
 	}
 
 	go func() {
+		log.Debug().Msg("start ks-laboratory-backend process")
 		if err := srv.ListenAndServe(); err != nil {
 			log.Fatal().Msgf("exit ks-laboratory-backend: %s", err.Error())
 			os.Exit(1)
