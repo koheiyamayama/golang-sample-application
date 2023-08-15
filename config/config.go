@@ -22,7 +22,7 @@ func ConnectDBInfo() string {
 	}
 	info := strings.Builder{}
 	var base string
-	if GetDBConnMethod() == "rdb" {
+	if GetDBPort() != "" {
 		base = fmt.Sprintf("%s:%s@%s(%s:%s)/%s", GetDBUserName(), GetDBPassword(), GetDBConnMethod(), GetDBHostName(), GetDBPort(), GetDatabaseName())
 	} else {
 		base = fmt.Sprintf("%s:%s@%s(%s)/%s", GetDBUserName(), GetDBPassword(), GetDBConnMethod(), GetDBHostName(), GetDatabaseName())
@@ -64,7 +64,7 @@ func GetDBConnMethod() string {
 }
 
 func GetDBHostName() string {
-	defaultHostname := "rds"
+	defaultHostname := "rdb"
 	if hostname := os.Getenv("DATABASE_HOSTNAME"); hostname != "" {
 		return hostname
 	} else {

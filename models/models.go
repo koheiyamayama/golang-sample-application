@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackskj/carta"
 	"github.com/jmoiron/sqlx"
+	"github.com/koheiyamayama/ks-laboratory-backend/db/mysql"
 	"github.com/oklog/ulid/v2"
 	"github.com/rs/zerolog/log"
 )
@@ -21,6 +22,12 @@ type (
 	User struct {
 		ID   ulid.ULID `json:"id"`
 		Name string    `json:"name"`
+	}
+
+	UserWithPosts struct {
+		ID    ulid.ULID `json:"id"`
+		Name  string    `json:"name"`
+		Posts []*Post   `json:"posts"`
 	}
 
 	Post struct {
@@ -38,14 +45,21 @@ type (
 	}
 
 	MySQLClient struct {
-		Dbx *sqlx.DB
+		Dbx  *sqlx.DB
+		Sqlc *mysql.Queries
+	}
+
+	MySQLUserWithPosts struct {
+		ID    string `db:"user_id"`
+		Name  string `db:"user_name"`
+		Posts []*MySQLPost
 	}
 
 	MySQLPost struct {
-		ID     string `db:"id"`
-		Title  string `db:"title"`
-		Body   string `db:"body"`
-		UserID string `db:"user_id"`
+		ID     string `db:"post_id"`
+		Title  string `db:"post_title"`
+		Body   string `db:"post_body"`
+		UserID string `db:"post_user_id"`
 	}
 
 	MySQLPostWithUser struct {
@@ -77,7 +91,8 @@ func NewPost(id ulid.ULID, title string, body string, userID ulid.ULID) *Post {
 
 func NewMySQLClient(dbx *sqlx.DB) *MySQLClient {
 	return &MySQLClient{
-		Dbx: dbx,
+		Dbx:  dbx,
+		Sqlc: mysql.New(dbx),
 	}
 }
 
@@ -194,4 +209,25 @@ func (mysql *MySQLClient) ListPosts(ctx context.Context, limit *int) ([]*PostWit
 
 func ToPtr[T any](v T) *T {
 	return &v
+}
+
+func (mysql *MySQLClient) GetUserWithPostsByID(ctx context.Context, userID ulid.ULID) (*UserWithPosts, error) {
+	result, err := mysql.Sqlc.GetUserWithPosts(ctx, userID.String())
+	if err != nil {
+		return nil, fmt.Errorf("models.GetUserWithPostsByID: failed to mysql.Sqlc.GetUserWithPosts: %w", err)
+	}
+
+	posts := []*Post{}
+	for _, post := range result {
+		if post.PostID.String == "" {
+			continue
+		}
+		posts = append(posts, NewPost(ulid.MustParse(post.PostID.String), post.PostTitle.String, post.PostBody.String, ulid.MustParse(post.PostUserID.String)))
+	}
+
+	return &UserWithPosts{
+		ID:    ulid.MustParse(result[0].UserID),
+		Name:  result[0].UserName,
+		Posts: posts,
+	}, nil
 }

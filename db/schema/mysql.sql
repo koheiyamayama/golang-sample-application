@@ -1,11 +1,11 @@
 CREATE TABLE
-    `users` (
+    IF NOT EXISTS `users` (
         id CHAR(36) PRIMARY KEY,
         name VARCHAR(100) NOT NULL
     );
 
 CREATE TABLE
-    `posts` (
+    IF NOT EXISTS `posts` (
         id CHAR(36) PRIMARY KEY,
         title VARCHAR(30) NOT NULL,
         body VARCHAR(280) NOT NULL,

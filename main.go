@@ -47,6 +47,7 @@ func main() {
 		})
 		r.Route("/users", func(r chi.Router) {
 			r.Route("/{userID}", func(r chi.Router) {
+				r.Get("/", h.GetUserByID)
 				r.Get("/posts", h.ListPostsByUser)
 			})
 		})

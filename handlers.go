@@ -79,6 +79,45 @@ func (h *Handlers) ListPosts(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+// GetUserByID returns user by userID
+func (h *Handlers) GetUserByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	userID := chi.URLParamFromCtx(ctx, "userID")
+	if userID == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		errRes := &ErrorResponse{
+			Msg: "must specified userID",
+		}
+		b, _ := json.Marshal(errRes)
+		w.Write(b)
+		return
+	}
+
+	user, err := h.mysqlClient.GetUserWithPostsByID(ctx, ulid.MustParse(userID))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		errRes := &ErrorResponse{
+			Msg: err.Error(),
+		}
+		b, _ := json.Marshal(errRes)
+		w.Write(b)
+		return
+	}
+
+	b, err := json.Marshal(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		errRes := &ErrorResponse{
+			Msg: err.Error(),
+		}
+		b, _ := json.Marshal(errRes)
+		w.Write(b)
+		return
+	}
+	w.Header().Add("Content-Type", "application/json")
+	w.Write(b)
+}
+
 func (h *Handlers) CreatePosts(w http.ResponseWriter, r *http.Request) {
 	b := r.Body
 	defer r.Body.Close()

@@ -3,6 +3,7 @@ module github.com/koheiyamayama/ks-laboratory-backend
 go 1.20
 
 require (
+	github.com/avast/retry-go v3.0.0+incompatible
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/jackskj/carta v0.2.0
@@ -12,7 +13,6 @@ require (
 )
 
 require (
-	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
